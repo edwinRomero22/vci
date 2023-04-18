@@ -1,0 +1,248 @@
+﻿FUNCTION_BLOCK "Variables_HMI"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      AHM1 : "AHM1";
+      IEQ : "IEQSY";
+      APF : "MCGS";
+   END_VAR
+
+   VAR 
+      "Visibilidad R" : Bool := true;
+      HMI { S7_SetPoint := 'False'} : "HMI";
+      HMI_APF : "HMI_APF";
+      HMI_APF_Alatmas : "HMI_APF_Alarmas";
+      x { S7_SetPoint := 'True'} : Int;
+      Pload : Struct
+         R : Real;
+         S : Real;
+         T : Real;
+      END_STRUCT;
+      Qload : Struct
+         R : Real;
+         S : Real;
+         T : Real;
+      END_STRUCT;
+      QGrid : Struct
+         R : Real;
+         S : Real;
+         T : Real;
+      END_STRUCT;
+      HLoad : Struct
+         A : Real;
+         B : Real;
+         C : Real;
+         D : Real;
+         E : Real;
+      END_STRUCT;
+      HGrid : Struct
+         A : Real;
+         B : Real;
+         C : Real;
+         D : Real;
+         E : Real;
+      END_STRUCT;
+      Order : Struct
+         A : Real;
+         B : Real;
+         C : Real;
+         D : Real;
+         E : Real;
+      END_STRUCT;
+      YLoad : Struct
+         R : Real;
+         S : Real;
+         T : Real;
+      END_STRUCT;
+      YGrid : Struct
+         R : Real;
+         S : Real;
+         T : Real;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT 
+      PI : Real := 3.141516;
+   END_VAR
+
+
+BEGIN
+	// Voltaje
+	
+	#HMI.Voltaje."V L1- L2" := #AHM1."Parametros Basicos"."40007 - Tension y Energia".V12;
+	#HMI.Voltaje."V L2 - L3" := #AHM1."Parametros Basicos"."40007 - Tension y Energia".V23;
+	#HMI.Voltaje."V L3 - L1" := #AHM1."Parametros Basicos"."40007 - Tension y Energia".V31;
+	
+	// Amperaje
+	
+	#HMI.Amperaje.R := #AHM1."Parametros Basicos"."40007 - Tension y Energia".I1;
+	#HMI.Amperaje.S := #AHM1."Parametros Basicos"."40007 - Tension y Energia".I2;
+	#HMI.Amperaje.T := #AHM1."Parametros Basicos"."40007 - Tension y Energia".I3;
+	#HMI.Amperaje.N := #AHM1."Parametros Basicos"."40007 - Tension y Energia"."In(3P4W)";
+	
+	
+	//Potencia 
+	#HMI.Potencia."Real" := #AHM1."Parametros Basicos"."40007 - Tension y Energia".P;
+	#HMI.Potencia.Aparente := #AHM1."Parametros Basicos"."40007 - Tension y Energia".S;
+	#HMI.Potencia.Reactiva := #AHM1."Parametros Basicos"."40007 - Tension y Energia".Q;
+	
+	//THD voltaje
+	#HMI.THDV.R := #AHM1."Harmonic data"."40529 - Distorsion Armonica V y A"."THD-V1";
+	#HMI.THDV.S := #AHM1."Harmonic data"."40529 - Distorsion Armonica V y A"."THD-V2";
+	#HMI.THDV.T := #AHM1."Harmonic data"."40529 - Distorsion Armonica V y A"."THD-V3";
+	
+	// THD Intensidad
+	
+	#HMI.THDI.R := #AHM1."Harmonic data"."40529 - Distorsion Armonica V y A"."THD-I1";
+	#HMI.THDI.S := #AHM1."Harmonic data"."40529 - Distorsion Armonica V y A"."THD-I2";
+	#HMI.THDI.T := #AHM1."Harmonic data"."40529 - Distorsion Armonica V y A"."THD-I3";
+	
+	//  Factor de potencia
+	
+	#HMI.FDP."Factor de potencia" := #AHM1."Parametros Basicos"."40007 - Tension y Energia".PF;
+	
+	// alpha
+	
+	#HMI.Alpha.Input := #IEQ.Alpha.Input_Value;
+	
+	// Tempeatura 
+	
+	#HMI.Temperatura.Tiristores := #IEQ.Temperatura.Tiristores;
+	
+	#HMI.Temperatura.Nucleo := #IEQ.Temperatura.Nucleo;
+	
+	
+	
+	//*****************************************************************************************************
+	//Definición de variables  APF  
+	//*****************************************************************************************************
+	
+	// BOTONES LECTURA 
+	
+	(* #HMI_APF."Run/stop_READ"."1" := #APF.READ."Output Coils 0nnnn"."Dev_Run/Stop_10";
+	#HMI_APF."Run/stop_READ"."2" := #APF.READ."Output Coils 0nnnn"."Dev_Run/Stop_20";
+	#HMI_APF."Run/stop_READ"."3" := #APF.READ."Output Coils 0nnnn"."Dev_Run/Stop_30";
+	#HMI_APF."Run/stop_READ"."4" := #APF.READ."Output Coils 0nnnn"."Dev_Run/Stop_40";
+	*)
+	//BOTONES ESCRITURA 
+	(* #APF.Btns."Run/Stop APF1":= #HMI_APF."Run/stop_WRITE"."1";
+	 #APF.Btns."Run/Stop APF2" := #HMI_APF."Run/stop_WRITE"."2";
+	 #APF.Btns."Run/Stop APF3" := #HMI_APF."Run/stop_WRITE"."3";
+	 #APF.Btns."Run/Stop APF4" := #HMI_APF."Run/stop_WRITE"."4"; *)
+	 
+	 //*****************************************************************************************************
+	 
+	// GRID CURRENT 
+	 #HMI_APF.Grid_Current.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid current A 29"/10);
+	 #HMI_APF.Grid_Current.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid current B 30"/10);
+	 #HMI_APF.Grid_Current.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid current C 31"/10);
+	 #HMI_APF.Grid_Current.N := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid N current 32"/10);
+	
+	// GRID VOLTAGE
+	
+	 #HMI_APF.Grid_Voltage.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid voltage A 33"/10);
+	 #HMI_APF.Grid_Voltage.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid voltage B 34"/10);
+	 #HMI_APF.Grid_Voltage.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid voltage C 35"/10);
+	
+	
+	//*****************************************************************************************************
+	
+	// 1 - OUT1 === LOAD VOLTAGE  
+	#HMI_APF.Out1.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load current A 36"/10);
+	#HMI_APF.Out1.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load current B 37"/10);
+	#HMI_APF.Out1.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load current C 38"/10);
+	
+	// 2 - LOAD P
+	#HMI_APF.Pload.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load P A 60"/10);
+	#HMI_APF.Pload.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load P B 61"/10);
+	#HMI_APF.Pload.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load P C 62"/10);
+	// 3 - LOAD Q
+	#HMI_APF.Qload.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load Q A 42"/10);
+	#HMI_APF.Qload.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load Q B 43"/10);
+	#HMI_APF.Qload.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load Q C 44"/10);
+	
+	// 4 - GRID Q
+	#HMI_APF.QGrid.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid Q A 63"/10);
+	#HMI_APF.QGrid.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid Q B 64"/10);
+	#HMI_APF.QGrid.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid Q C 65"/10);
+	
+	// 5 - RATIO 
+	#HMI_APF.Ratio.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Compensating current A phase 11" / 150);
+	#HMI_APF.Ratio.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Compensating current B phase 12" / 150);
+	#HMI_APF.Ratio.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Compensating current C phase 13" / 150);
+	
+	// 6 - LOAD PF
+	#HMI_APF.LoadPF.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load PF A 45"/10);
+	#HMI_APF.LoadPF.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load PF B 46"/10);
+	#HMI_APF.LoadPF.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load PF C 47"/10);
+	// 7 - GRID PF
+	#HMI_APF.GridTHD.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid PF A 48"/10);
+	#HMI_APF.GridTHD.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid PF B 49"/10);
+	#HMI_APF.GridTHD.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid PF C 50");
+	// 8 - LOAD THD
+	#HMI_APF.LoadTHD.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load THDA 57"/10);
+	#HMI_APF.LoadTHD.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load THDB 58"/10);
+	#HMI_APF.LoadTHD.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Load THDC 59"/10);
+	
+	// 9 - GRID THD
+	#HMI_APF.GridTHD.R := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid THDA 54"/10);
+	#HMI_APF.GridTHD.S := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid THDB 55"/10);
+	#HMI_APF.GridTHD.T := INT_TO_REAL(#APF.READ."Input Register 3nnnn"."Grid THDC 56"/10);
+	
+	
+	//*****************************************************************************************************
+	
+	
+	
+	(*
+	//HLOAD
+	#HMI_APF.HLoad.A := #APF.READ."Input Register 3nnnn"."Load harmonic A 1";
+	#HMI_APF.HLoad.B := #APF.READ."Input Register 3nnnn"."Load harmonic B  2";
+	#HMI_APF.HLoad.C := #APF.READ."Input Register 3nnnn"."Load harmonic C  3";
+	#HMI_APF.HLoad.D := #APF.READ."Input Register 3nnnn"."Load harmonic D  4";
+	#HMI_APF.HLoad.E := #APF.READ."Input Register 3nnnn"."Load harmonic E  5";
+	
+	//HGRID
+	#HMI_APF.HGrid.A := #APF.READ."Input Register 3nnnn"."Grid harmonic A  6";
+	#HMI_APF.HGrid.B := #APF.READ."Input Register 3nnnn"."Grid harmonic B  7";
+	#HMI_APF.HGrid.C := #APF.READ."Input Register 3nnnn"."Grid harmonic C  8";
+	#HMI_APF.HGrid.D := #APF.READ."Input Register 3nnnn"."Grid harmonic D  9";
+	#HMI_APF.HGrid.E := #APF.READ."Input Register 3nnnn"."Grid harmonic E  10";
+	
+	//ORDER
+	#HMI_APF.Order.A := #APF.READ."Holding Register 4 nnnn"."40001 a 40043 (43)"."Device 14 feature times A 14";
+	#HMI_APF.Order.B := #APF.READ."Holding Register 4 nnnn"."40001 a 40043 (43)"."Device 14 feature times B 15";
+	#HMI_APF.Order.C := #APF.READ."Holding Register 4 nnnn"."40001 a 40043 (43)"."Device 14 feature times C 16";
+	#HMI_APF.Order.D := #APF.READ."Holding Register 4 nnnn"."40001 a 40043 (43)"."Device 14 feature times D 17";
+	#HMI_APF.Order.E := #APF.READ."Holding Register 4 nnnn"."40001 a 40043 (43)"."Device 14 feature times E 18";
+	*)
+	
+	
+	// Calculo de temperatura Maxima.
+	(* IF #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 1" > #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 2" THEN
+	    IF #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 1" > #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 3" THEN // Statement section IF
+	        #HMI.APF.TempMax := #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 1";
+	    END_IF;
+	ELSE
+	    
+	    IF #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 2" > #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 3" THEN
+	        #HMI.APF.TempMax := #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 2";
+	    ELSE
+	        #HMI.APF.TempMax := #APF.READ."Input Register 3nnnn"."30058-3"."Temperature 3";
+	    END_IF;
+	END_IF;
+	*)
+	
+	//*****************************************************************************************************
+	//POPUP - NUCLEO TRIGGER ALARMA 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+
