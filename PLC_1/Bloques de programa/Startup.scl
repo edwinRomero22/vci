@@ -1,0 +1,14 @@
+﻿ORGANIZATION_BLOCK "Startup"
+TITLE = "Complete Restart"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+	IF ( "IEQ_DB".Etapa = 3) THEN
+	    "IEQ_DB".Etapa := 3;
+	ELSE
+	    "IEQ_DB".Etapa := 99;
+	END_IF;
+	
+END_ORGANIZATION_BLOCK
+
